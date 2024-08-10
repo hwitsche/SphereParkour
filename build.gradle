@@ -1,0 +1,91 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.0'
+}
+
+group 'de.th-koeln.ami'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+import org.gradle.internal.os.OperatingSystem
+
+project.ext.lwjglVersion = "3.3.1"
+project.ext.jomlVersion = "1.9.24"
+
+switch (OperatingSystem.current()) {
+    case OperatingSystem.LINUX:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.startsWith("arm") || osArch.startsWith("aarch64")
+                ? "natives-linux-${osArch.contains("64") || osArch.startsWith("armv8") ? "arm64" : "arm32"}"
+                : "natives-linux"
+        break
+    case OperatingSystem.MAC_OS:
+        def osArch = System.getProperty("os.arch")
+        project.ext.lwjglNatives = osArch.equals("aarch64")
+                ? "natives-macos-arm64"
+                : "natives-macos"
+        break
+    case OperatingSystem.WINDOWS:
+        project.ext.lwjglNatives = System.getProperty("os.arch").contains("64") ? "natives-windows" : "natives-windows-x86"
+        break
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+
+    implementation "org.lwjgl:lwjgl"
+    implementation "org.lwjgl:lwjgl-assimp"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.lwjgl:lwjgl-opengl"
+    implementation "org.lwjgl:lwjgl-stb"
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-assimp::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+    implementation "org.joml:joml:${jomlVersion}"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "11"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "11"
+}
+
+task(fatJar, type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes('Main-Class': 'cga.exercise.MainKt')
+    }
+    from sourceSets.main.output
+
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
+}
+
+wrapper{
+    gradleVersion = '7.4.2'
+    distributionType = Wrapper.DistributionType.ALL
+}

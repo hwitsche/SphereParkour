@@ -1,0 +1,31 @@
+# Basic MTL file with a PNG texture
+
+# Define a new material
+newmtl Material.002
+
+# Set ambient, diffuse, and specular colors
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+
+# Set shininess
+Ns 50.0
+
+# Define the transparency (1.0 means fully opaque)
+d 1.0
+
+# Specify the texture map
+map_Kd ball.png
+
+
+# In this example:
+#
+#  newmtl MyMaterial creates a new material named "MyMaterial."
+#   Ka, Kd, and Ks set the ambient, diffuse, and specular colors of the material. These values are in RGB format, ranging from 0.0 to 1.0.
+#                                                                                                                 Ns sets the shininess of the material. Higher values result in a smaller, more focused specular highlight.
+#                                                                                                                                                                                                       d sets the transparency of the material. A value of 1.0 means the material is fully opaque.
+#                                                                                                                                                                                                                                                   map_Kd specifies the texture map for the material's diffuse color. Replace my_texture.png with the actual path to your PNG texture image.
+#
+#   Save this text in a .mtl file alongside your .obj file and the texture image file (my_texture.png in this case). Make sure the paths specified in the MTL file match the actual paths of the files on your system.
+
+#                                                                                                                                                                        Remember that this is a very basic example, and real-world materials can be more complex with additional properties and settings. The format of the MTL file may also vary depending on the software and rendering engine you're using.
