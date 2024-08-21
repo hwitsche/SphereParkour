@@ -12,6 +12,11 @@ open class Transformable(private var modelMatrix: Matrix4f = Matrix4f(), var par
         return Matrix4f(modelMatrix)
     }
 
+    /** Resets modelMatrix **/
+    fun resetModelMatrixTo(pos: Vector3f) {
+        modelMatrix = Matrix4f().translate(pos)
+    }
+
     /**
      * Returns multiplication of world and object model matrices.
      * Multiplication has to be recursive for all parents.

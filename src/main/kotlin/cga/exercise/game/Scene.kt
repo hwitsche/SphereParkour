@@ -16,115 +16,107 @@ import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
-import kotlin.math.max
-import kotlin.math.min
-/**
- * Created by Fabian on 16.09.2017.
- */
+import kotlin.math.*
+
 class Scene(private val window: GameWindow) {
-    private val staticShader: ShaderProgram = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
 
+    /** Variable Declarations **/
+
+    /** 1) shader programs **/
+    private val staticShader: ShaderProgram
+    /** 2) materials **/
+    private val groundMaterial: Material
+    /** 3) renderables **/
     private val ground: Renderable
-    private val bike: Renderable
     private val ball: Renderable
-
     private val wall: Renderable
     private val wall2: Renderable
-
-    private val groundMaterial: Material
-    private val groundColor: Vector3f
-
-    //Lights
-    //private val bikePointLight: PointLight
-    private val pointLightList = mutableListOf<PointLight>()
-
-    //private val bikeSpotLight: SpotLight
-    private val spotLightList = mutableListOf<SpotLight>()
-
-    //camera
+    /** 4) camera **/
     private val camera: TronCamera
-    private var oldMouseX = 0.0
-    private var oldMouseY = 0.0
-    private var firstMouseMove = true
+    private var oldMouseX       = 0.0
+    private var oldMouseY       = 0.0
+    private var firstMouseMove  = true
+    /** 5) additional uniforms **/
+    private val groundColor: Vector3f
+    private val pointLightList: MutableList<PointLight>
+    private val spotLightList: MutableList<SpotLight>
 
-    //scene setup
+    /** Variable Definition/Initialisation **/
     init {
-        //load textures
-        val groundDiff = Texture2D("assets/textures/ground_diff.png", true)
+        /** shader programs **/
+        staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
+
+        // ############################################################################################# //
+
+        /** materials **/
+        val groundDiff      = Texture2D("assets/textures/ground_diff.png", true)
         groundDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundSpecular = Texture2D("assets/textures/ground_spec.png", true)
+        val groundSpecular  = Texture2D("assets/textures/ground_spec.png", true)
         groundSpecular.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundEmit = Texture2D("assets/textures/ground_emit.png", true)
+        val groundEmit      = Texture2D("assets/textures/ground_emit.png", true)
         groundEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        groundMaterial = Material(groundDiff, groundEmit, groundSpecular, 60f, Vector2f(64.0f, 64.0f))
+        groundMaterial      = Material(groundDiff, groundEmit, groundSpecular, 60f, Vector2f(64.0f, 64.0f))
 
-        //load an object and create a mesh
-        val gres = loadOBJ("assets/models/ground.obj")
-        //Create the mesh
-        val stride = 8 * 4
-        val atr1 = VertexAttribute(3, GL_FLOAT, stride, 0)     //position attribute
-        val atr2 = VertexAttribute(2, GL_FLOAT, stride, 3 * 4) //texture coordinate attribute
-        val atr3 = VertexAttribute(3, GL_FLOAT, stride, 5 * 4) //normal attribute
-        val vertexAttributes = arrayOf(atr1, atr2, atr3)
-        //Create renderable
+        // ############################################################################################# //
+
+        /** Vertex Buffer => per Vertex Attribute Declaration **/
+        val byteStride = (3 + 2 + 3) * 4
+        val atr1 = VertexAttribute(3, GL_FLOAT, byteStride, 0)     // position
+        val atr2 = VertexAttribute(2, GL_FLOAT, byteStride, 3 * 4) // texture coordinate
+        val atr3 = VertexAttribute(3, GL_FLOAT, byteStride, 5 * 4) // normal
+        val vertexAttribs1 = arrayOf(atr1, atr2, atr3)
+
+        /** renderables [modelMatrix convention => T * R * S] **/
+        val loader = loadOBJ("assets/models/ground.obj")
         ground = Renderable()
-        for (m in gres.objects[0].meshes) {
-            val mesh = Mesh(m.vertexData, m.indexData, vertexAttributes, groundMaterial)
-            ground.meshes.add(mesh)
+        for (m in loader.objects[0].meshes) {
+            ground.meshes.add(
+                Mesh(m.vertexData, m.indexData, vertexAttribs1, groundMaterial)
+            )
         }
-        bike = loadModel("assets/Light Cycle/Light Cycle/HQ_Movie cycle.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        bike.scale(Vector3f(0.8f, 0.8f, 0.8f))
+        ground.resetModelMatrixTo(Vector3f(0.0f))
 
-        //ball = loadModel("assets/models/wooden_sphere/wooden_sphere.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
         ball = loadModel("assets/models/ball.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
         ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
-        ball.translate(Vector3f(10.0f, 1.0f,10.0f))
 
         wall = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall.rotate(-0.2f,4.71f,4.5f)
-        wall.translate(Vector3f(0.0f,0.0f,3.0f))
+        wall.resetModelMatrixTo(Vector3f(0.0f,0.0f,0.0f))
+        wall.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall.rotationInDegree = 90.0f
 
         wall2 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall2.rotate(0.0f,0.0f,4.7f)
-        wall2.translate(Vector3f(0.0f,0.0f,3.0f))
+        wall2.resetModelMatrixTo(Vector3f(0.0f,0.0f,-3.0f))
+        wall2.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
 
-        //setup camera
+        // ############################################################################################# //
+
+        /** camera **/
         camera = TronCamera(
-                custom(window.framebufferWidth, window.framebufferHeight),
-                Math.toRadians(90.0f),
-                0.1f,
-                100.0f
+            custom(window.framebufferWidth, window.framebufferHeight),
+            Math.toRadians(90.0f),
+            0.1f,
+            100.0f
         )
-        camera.parent = null
         camera.translate(Vector3f(8.0f, 3.0f, 10.0f))
         camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
-        //camera.translate(Vector3f(-3.5f, 2.0f, 8.5f))
 
+        // ############################################################################################# //
 
+        /** additional uniforms **/
         groundColor = Vector3f(0.0f, 1.0f, 0.0f)
 
-        //bike point light
-        /*
-        bikePointLight = PointLight("pointLight[${pointLightList.size}]", Vector3f(0.0f, 2.0f, 0.0f), Vector3f(0.0f, 0.5f, 0.0f))
-        bikePointLight.parent = bike
-        pointLightList.add(bikePointLight)
-         */
-
-        //bike spot light
-        /*
-        bikeSpotLight = SpotLight("spotLight[${spotLightList.size}]", Vector3f(3.0f, 3.0f, 3.0f), Vector3f(0.0f, 1.0f, -2.0f), Math.toRadians(20.0f), Math.toRadians(30.0f))
-        bikeSpotLight.rotate(Math.toRadians(-10.0f), 0.0f, 0.0f)
-        bikeSpotLight.parent = ball
-        spotLightList.add(bikeSpotLight)
-         */
-
-        // additional lights in the scene
+        pointLightList = mutableListOf()
         pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(0.0f, 2.0f, 2.0f), Vector3f(-10.0f, 2.0f, -10.0f)))
         pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(2.0f, 0.0f, 0.0f), Vector3f(10.0f, 2.0f, 10.0f)))
+
+        spotLightList = mutableListOf()
         spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(10.0f, 300.0f, 300.0f), Vector3f(6.0f, 2.0f, 4.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
         spotLightList.last().rotate(Math.toRadians(20f), Math.toRadians(60f), 0f)
 
-        //initial opengl state
+        // ############################################################################################# //
+
+        /** OpenGL global settings **/
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
         glEnable(GL_CULL_FACE); GLError.checkThrow()
         glFrontFace(GL_CCW); GLError.checkThrow()
@@ -134,105 +126,190 @@ class Scene(private val window: GameWindow) {
     }
 
     fun render(dt: Float, t: Float) {
-        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+         /** per frame setup **/
+         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+         val changingColor = Vector3f(Math.abs(Math.sin(t)), 0.0f, Math.abs(Math.cos(t)))
 
-        staticShader.use()
-        camera.bind(staticShader)
+         // ############################################################################################# //
 
-        val changingColor = Vector3f(Math.abs(Math.sin(t)), 0f, Math.abs(Math.cos(t)))
-        //bikePointLight.lightColor = changingColor
+         /** selecting shader program **/
+         staticShader.use()
 
-        // bind lights
-        for (pointLight in pointLightList) {
+         /** binding to current shader program **/
+         staticShader.setUniform("shadingColor", groundColor)
+         staticShader.setUniform("shadingColor", changingColor)
+         camera.bind(staticShader)
+
+         staticShader.setUniform("numPointLights", pointLightList.size)
+         for (pointLight in pointLightList) {
             pointLight.bind(staticShader)
-        }
-        staticShader.setUniform("numPointLights", pointLightList.size)
-        for (spotLight in spotLightList) {
-            spotLight.bind(staticShader, camera.calculateViewMatrix())
-        }
-        staticShader.setUniform("numSpotLights", spotLightList.size)
+         }
 
-        // render objects
-        staticShader.setUniform("shadingColor", groundColor)
-        ground.render(staticShader)
-        staticShader.setUniform("shadingColor", changingColor)
-        //bike.render(staticShader)
-        ball.render(staticShader)
-        wall.render(staticShader)
-        wall2.render(staticShader)
+         staticShader.setUniform("numSpotLights", spotLightList.size)
+         for (spotLight in spotLightList) {
+            spotLight.bind(staticShader, camera.calculateViewMatrix())
+         }
+
+         /** drawing with current shader program **/
+         ground.render(staticShader)
+         ball.render(staticShader)
+         wall.render(staticShader)
+         wall2.render(staticShader)
     }
 
-    fun isKollision(z:Float,x:Float) : Boolean {
-        // Berechne den nächsten Punkt am Rechteck
-        var closestZ = max((wall.getPosition().z+z) - 48.0f / 2, min((ball.getPosition().z + z), wall.getPosition().z + 48.0f / 2))
-        var closestX = max((wall.getPosition().x + x) - 6.0f / 2, min((ball.getPosition().x + x), wall.getPosition().x + 3.0f / 2))
+    fun findNearRenderablesOf(player: Renderable,
+                              radius: Float,
+                              renderables: MutableList<Renderable>): MutableList<Renderable> {
+        val validRenderables = mutableListOf<Renderable>()
+        val playerPos = Vector2f(player.getPosition().x,player.getPosition().z)
 
-        // Berechne die Entfernung zwischen dem Kreiszentrum und dem nächsten Punkt
-        var distanceX = ball.getPosition().z - closestZ
-        var distanceY = ball.getPosition().x - closestX
+        for (renderable in renderables) {
+            val renderablePos = Vector2f(renderable.getPosition().x,renderable.getPosition().z)
+            val vecPlayerToRenderable = Vector2f(renderablePos.x-playerPos.x,renderablePos.x-playerPos.x)
 
-        // Berechne die quadrierte Entfernung
-        var distanceSquared = (distanceX * distanceX) + (distanceY * distanceY)
+            if (vecPlayerToRenderable.length() <= radius){
+                validRenderables.add(renderable)
+            }
+        }
+        return validRenderables
+    }
 
-        // Vergleiche die quadrierte Entfernung mit dem Quadrat des Radius
-        var isKollision: Boolean = distanceSquared <= (0.8f * 0.8f)
-        return isKollision;
+    fun isColliding(player: Renderable,
+                    playerRadius: Float,
+                    obstacle: Renderable,
+                    possibleTranslationOfPlayer: Vector3f,
+                    halfWidth : Float,
+                    halfHeight : Float) : Boolean{
+
+        val possiblePosition = Vector2f(player.getPosition().x + possibleTranslationOfPlayer.x,
+                                        player.getPosition().z + possibleTranslationOfPlayer.z)
+        val vecObstacleToPlayer = Vector2f(possiblePosition.x - obstacle.getPosition().x,
+                                           possiblePosition.y - obstacle.getPosition().z)
+
+        val clampedX: Float = min(vecObstacleToPlayer.x.absoluteValue, halfWidth)
+        val clampedZ: Float = min(vecObstacleToPlayer.y.absoluteValue, halfHeight)
+
+        var closestPoint = Vector2f(0.0f)
+
+        if(clampedX == 0.0f || clampedZ == 0.0f){
+            if(clampedX == 0.0f && vecObstacleToPlayer.y >= 0 ) closestPoint = Vector2f(0.0f, clampedZ)
+            else if(clampedX == 0.0f && vecObstacleToPlayer.y < 0) closestPoint = Vector2f(0.0f, -clampedZ)
+            else if(clampedZ == 0.0f && vecObstacleToPlayer.x >= 0) closestPoint = Vector2f(clampedX, 0.0f)
+            else if(clampedZ == 0.0f && vecObstacleToPlayer.x < 0) closestPoint = Vector2f(-clampedX, 0.0f)
+        } else {
+            if (vecObstacleToPlayer.x > 0 && vecObstacleToPlayer.y > 0) closestPoint = Vector2f(clampedX, clampedZ)
+            if (vecObstacleToPlayer.x < 0 && vecObstacleToPlayer.y > 0) closestPoint = Vector2f(-clampedX, clampedZ)
+            if (vecObstacleToPlayer.x > 0 && vecObstacleToPlayer.y < 0) closestPoint = Vector2f(clampedX, -clampedZ)
+            if (vecObstacleToPlayer.x < 0 && vecObstacleToPlayer.y < 0) closestPoint = Vector2f(-clampedX, -clampedZ)
+        }
+
+        val absClosestPointToPlayer = closestPoint.sub(vecObstacleToPlayer).length()
+        return playerRadius > absClosestPointToPlayer
     }
 
     fun update(dt: Float, t: Float) {
         val moveMul = 5.0f
         val rotateMul = 0.5f * Math.PI.toFloat()
-
+        val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2))
+        var isKollision = false
 
         if (window.getKeyState(GLFW_KEY_W)) {
+            for(renderable in listOfNearRenderables){
+                if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
+                    if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),1.0f,10.0f)) {
+                        isKollision = true
+                        break
+                    }
+                } else {
+                    if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),10.0f,1.0f)) {
+                        isKollision = true
+                        break
+                    }
+                }
 
-            val pos = ball.getWorldPosition()
+            }
 
-            if (isKollision(-dt * moveMul,0f) == true) {
-            ball.preTranslate(Vector3f(0.0f, 0.0f, -dt * moveMul))
-            camera.preTranslate(Vector3f(0.0f, 0.0f, -dt * moveMul))
-            //camera.preTranslate(Vector3f(0.0f, 0.0f, 0.0f))
-            //camera.preTranslate(Vector3f(pos.x -3.5f, pos.y + 2.0f, pos.z + 8.5f))
-
-            //ball.rotateAroundPoint(-dt * rotateMul ,0.0f, 0.0f, pos)
-            //camera.rotateAroundPoint(dt * rotateMul ,0.0f, 0.0f, pos)
-            ball.rotate(dt * 0.5f, 0.0f,0.0f )
+            if (!isKollision) {
+                ball.preTranslate(Vector3f(0.0f, 0.0f, dt * -moveMul))
+                camera.preTranslate(Vector3f(0.0f, 0.0f, dt * -moveMul))
+                ball.rotate(dt * 0.5f, 0.0f,0.0f )
             }
         }
         if (window.getKeyState(GLFW_KEY_S)) {
-            if (isKollision(dt * moveMul,0f) == false) {
-            //ball.translate(Vector3f(0.0f, 0.0f, dt * moveMul))
+            for(renderable in listOfNearRenderables){
+                if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
+                    if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),1.0f,10.0f)) {
+                        isKollision = true
+                        break
+                    }
+                } else {
+                    if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),10.0f,1.0f)) {
+                        isKollision = true
+                        break
+                    }
+                }
+            }
 
-            ball.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
-            camera.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
-            //ball.rotateAroundPoint(dt * rotateMul ,0.0f, 0.0f, ball.getWorldPosition())
-            ball.rotate(-dt * 0.5f, 0.0f,0.0f )
+            if (!isKollision) {
+                ball.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
+                camera.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
+                ball.rotate(-dt * 0.5f, 0.0f,0.0f )
             }
         }
         if (window.getKeyState(GLFW_KEY_A)) {
+            for(renderable in listOfNearRenderables){
+                if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
+                    if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul, 0.0f,0.0f),1.0f,10.0f)) {
+                        isKollision = true
+                        break
+                    }
+                } else {
+                    if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul,0.0f,0.0f),10.0f,1.0f)) {
+                        isKollision = true
+                        break
+                    }
+                }
+            }
 
-            if (isKollision(0f,-dt * moveMul) == false) {
-            //ball.rotate(0.0f, dt * rotateMul, 0.0f)
-            ball.preTranslate(Vector3f(-dt * moveMul,0.0f, 0.0f))
-            camera.preTranslate(Vector3f(-dt * moveMul,0.0f, 0.0f))
-            //val pos = ball.getWorldPosition()
-            ball.rotate(0.0f, 0.0f, dt * 0.5f)//Vector3f(pos.x,pos.y,pos.z)
+            if (!isKollision) {
+                ball.preTranslate(Vector3f(dt * -moveMul,0.0f, 0.0f))
+                camera.preTranslate(Vector3f(dt * -moveMul,0.0f, 0.0f))
+                ball.rotate(0.0f, 0.0f, dt * 0.5f)
             }
         }
         if (window.getKeyState(GLFW_KEY_D)) {
-            if (isKollision(0f, dt * moveMul) == false) {
-            //ball.rotate(0.0f, -dt * rotateMul, 0.0f)
-            ball.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
-            camera.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
-            ball.rotate(0.0f, 0.0f, -dt * 0.5f)
+            for(renderable in listOfNearRenderables){
+                if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
+                    if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),1.0f,10.0f)) {
+                        isKollision = true
+                        break
+                    }
+                } else {
+                    if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),10.0f,1.0f)) {
+                        isKollision = true
+                        break
+                    }
+                }
             }
-        }
-        if (window.getKeyState(GLFW_KEY_F)) {
-            //bikeSpotLight.rotate(Math.PI.toFloat() * dt, 0.0f, 0.0f)
+
+            if (!isKollision) {
+                ball.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
+                camera.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
+                ball.rotate(0.0f, 0.0f, -dt * 0.5f)
+            }
         }
     }
 
-    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
+    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
+         /** resetting ball and camera **/
+         if (key == GLFW_KEY_R) {
+             ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+             ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
+
+             camera.resetModelMatrixTo(Vector3f(8.0f, 3.0f, 10.0f))
+             camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
+         }
+    }
 
     fun onMouseMove(xpos: Double, ypos: Double) {
         if (!firstMouseMove) {

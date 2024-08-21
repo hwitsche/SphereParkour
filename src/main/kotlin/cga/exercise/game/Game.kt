@@ -8,8 +8,8 @@ import cga.framework.GameWindow
 class Game(width: Int,
            height: Int,
            fullscreen: Boolean = false,
-           vsync: Boolean = false,
-           title: String = "Testgame",
+           vsync: Boolean = true,
+           title: String = "SphereParkour",
            GLVersionMajor: Int = 3,
            GLVersionMinor: Int = 3) : GameWindow(width, height, fullscreen, vsync, GLVersionMajor, GLVersionMinor, title, 4, 120.0f) {
 

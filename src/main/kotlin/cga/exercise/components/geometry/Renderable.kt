@@ -6,6 +6,7 @@ import cga.exercise.components.shader.ShaderProgram
  * Extends Transformable such that the object can render Mesh objects transformed by Transformable
  */
 class Renderable(val meshes: MutableList<Mesh> = mutableListOf()) : Transformable(parent = null), IRenderable {
+    var rotationInDegree : Float = 0.0f
 
     /**
      * Renders all meshes attached to this Renderable, applying the transformation matrix to
