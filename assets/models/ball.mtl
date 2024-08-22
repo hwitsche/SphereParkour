@@ -15,8 +15,8 @@ Ns 50.0
 d 1.0
 
 # Specify the texture map
-map_Kd ball.png
-
+#map_Kd ball.png
+map_Kd BeachballTexture.png
 
 # In this example:
 #

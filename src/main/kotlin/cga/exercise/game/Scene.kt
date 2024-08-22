@@ -232,7 +232,7 @@ class Scene(private val window: GameWindow) {
             if (!isKollision) {
                 ball.preTranslate(Vector3f(0.0f, 0.0f, dt * -moveMul))
                 camera.preTranslate(Vector3f(0.0f, 0.0f, dt * -moveMul))
-                ball.rotate(dt * 0.5f, 0.0f,0.0f )
+                ball.rotateAroundPoint(-dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
         if (window.getKeyState(GLFW_KEY_S)) {
@@ -253,7 +253,7 @@ class Scene(private val window: GameWindow) {
             if (!isKollision) {
                 ball.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
                 camera.preTranslate(Vector3f(0.0f, 0.0f, dt * moveMul))
-                ball.rotate(-dt * 0.5f, 0.0f,0.0f )
+                ball.rotateAroundPoint(dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
         if (window.getKeyState(GLFW_KEY_A)) {
@@ -274,7 +274,7 @@ class Scene(private val window: GameWindow) {
             if (!isKollision) {
                 ball.preTranslate(Vector3f(dt * -moveMul,0.0f, 0.0f))
                 camera.preTranslate(Vector3f(dt * -moveMul,0.0f, 0.0f))
-                ball.rotate(0.0f, 0.0f, dt * 0.5f)
+                ball.rotateAroundPoint(0.0f, 0.0f, dt * 3.5f, ball.getPosition())
             }
         }
         if (window.getKeyState(GLFW_KEY_D)) {
@@ -295,7 +295,7 @@ class Scene(private val window: GameWindow) {
             if (!isKollision) {
                 ball.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
                 camera.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
-                ball.rotate(0.0f, 0.0f, -dt * 0.5f)
+                ball.rotateAroundPoint(0.0f, 0.0f, -dt * 3.5f, ball.getPosition())
             }
         }
     }
