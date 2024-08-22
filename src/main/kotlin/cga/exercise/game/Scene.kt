@@ -6,16 +6,23 @@ import cga.exercise.components.geometry.*
 import cga.exercise.components.light.PointLight
 import cga.exercise.components.light.SpotLight
 import cga.exercise.components.shader.ShaderProgram
+import cga.exercise.components.texture.CubeMap
 import cga.exercise.components.texture.Texture2D
 import cga.framework.GLError
 import cga.framework.GameWindow
 import cga.framework.ModelLoader.loadModel
 import cga.framework.OBJLoader.loadOBJ
 import org.joml.Math
+import org.joml.Matrix4f
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL11.*
+import java.io.File
+import javax.sound.sampled.AudioInputStream
+import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.Clip
+import javax.sound.sampled.FloatControl
 import kotlin.math.*
 
 class Scene(private val window: GameWindow) {
@@ -24,18 +31,22 @@ class Scene(private val window: GameWindow) {
 
     /** 1) shader programs **/
     private val staticShader: ShaderProgram
+    private val skyShader: ShaderProgram
     /** 2) materials **/
     private val groundMaterial: Material
+    private val skyboxTex: CubeMap
     /** 3) renderables **/
     private val ground: Renderable
     private val ball: Renderable
     private val wall: Renderable
     private val wall2: Renderable
+    //private val skybox: Renderable
     /** 4) camera **/
     private val camera: TronCamera
     private var oldMouseX       = 0.0
     private var oldMouseY       = 0.0
     private var firstMouseMove  = true
+    private val skyboxRotator = Transformable()
     /** 5) additional uniforms **/
     private val groundColor: Vector3f
     private val pointLightList: MutableList<PointLight>
@@ -45,8 +56,17 @@ class Scene(private val window: GameWindow) {
     init {
         /** shader programs **/
         staticShader = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
-
+        skyShader = ShaderProgram("assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl")
         // ############################################################################################# //
+
+        /* BGM */
+        val audioInputStream : AudioInputStream = AudioSystem.getAudioInputStream(File("assets/music/Coral_Chorus.wav"))
+        val clip : Clip = AudioSystem.getClip()
+        clip.open(audioInputStream)
+        clip.loop(Clip.LOOP_CONTINUOUSLY)
+        val gainControl : FloatControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
+        gainControl.value = -12.0f // decreased by 12dB => (1/4 of default volume)
+        clip.start()
 
         /** materials **/
         val groundDiff      = Texture2D("assets/textures/ground_diff.png", true)
@@ -65,6 +85,51 @@ class Scene(private val window: GameWindow) {
         val atr2 = VertexAttribute(2, GL_FLOAT, byteStride, 3 * 4) // texture coordinate
         val atr3 = VertexAttribute(3, GL_FLOAT, byteStride, 5 * 4) // normal
         val vertexAttribs1 = arrayOf(atr1, atr2, atr3)
+
+        /* CubeMap Textures */
+        val cubeFaces = arrayListOf<String>(
+            "assets/textures/skybox/left.jpg",
+            "assets/textures/skybox/right.jpg",
+            "assets/textures/skybox/bottom.jpg",
+            "assets/textures/skybox/top.jpg",
+            "assets/textures/skybox/back.jpg",
+            "assets/textures/skybox/front.jpg"
+        )
+
+        skyboxTex = CubeMap(cubeFaces, false)
+        skyboxTex.setTexParams()
+
+        /* CubeMap - Skybox */
+        val skyboxVBO = floatArrayOf(
+            // pos, pos, pos
+            -1.0f,  1.0f, -1.0f,//0
+            -1.0f, -1.0f, -1.0f,//1
+            1.0f, -1.0f, -1.0f,//2
+            1.0f,  1.0f, -1.0f,//3
+            -1.0f, -1.0f,  1.0f,//4
+            -1.0f,  1.0f,  1.0f,//5
+            1.0f, -1.0f,  1.0f,//6
+            1.0f,  1.0f,  1.0f//7
+        )
+        val skyboxIBO = intArrayOf(
+            0, 1, 2,
+            2, 3, 0,
+            4, 1, 0,
+            0, 5, 4,
+            2, 6, 7,
+            7, 3, 2,
+            4, 5, 7,
+            7, 6, 4,
+            0, 3, 7,
+            7, 5, 0,
+            1, 4, 2,
+            2, 4, 6
+        )
+
+        val attributePosSky : VertexAttribute = VertexAttribute(3, GL_FLOAT, 12, 0)
+        val skyboxAttributes = arrayOf(attributePosSky)
+
+        //skybox = Renderable(mutableListOf(Mesh(skyboxVBO, skyboxIBO, skyboxAttributes, null)))
 
         /** renderables [modelMatrix convention => T * R * S] **/
         val loader = loadOBJ("assets/models/ground.obj")
@@ -128,16 +193,25 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
          /** per frame setup **/
          glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-         val changingColor = Vector3f(Math.abs(Math.sin(t)), 0.0f, Math.abs(Math.cos(t)))
+         //val changingColor = Vector3f(Math.abs(Math.sin(t)), 0.0f, Math.abs(Math.cos(t)))
 
          // ############################################################################################# //
+
+        /* skybox */
+        glDepthFunc(GL_LEQUAL)
+        skyShader.use()
+        skyShader.setUniform("view_matrix", skyboxRotator.getModelMatrix(), false)
+        skyShader.setUniform("projection_matrix", Matrix4f(), false)
+        skyboxTex.bind(0, skyShader)
+        //skybox.render(skyShader)
+        glDepthFunc(GL_LESS)
 
          /** selecting shader program **/
          staticShader.use()
 
          /** binding to current shader program **/
          staticShader.setUniform("shadingColor", groundColor)
-         staticShader.setUniform("shadingColor", changingColor)
+         //staticShader.setUniform("shadingColor", changingColor)
          camera.bind(staticShader)
 
          staticShader.setUniform("numPointLights", pointLightList.size)
