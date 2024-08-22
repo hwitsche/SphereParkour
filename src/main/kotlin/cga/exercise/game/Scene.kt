@@ -128,7 +128,7 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
          /** per frame setup **/
          glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-         val changingColor = Vector3f(Math.abs(Math.sin(t)), 0.0f, Math.abs(Math.cos(t)))
+         val changingColor = Vector3f(1.0f, 1.0f, 1.0f)
 
          // ############################################################################################# //
 
