@@ -79,11 +79,11 @@ class Scene(private val window: GameWindow) {
         clip.start()
 
         /** materials **/
-        val groundDiff      = Texture2D("assets/textures/ground_diff.png", true)
+        val groundDiff      = Texture2D("assets/textures/sand_diff.png", true)
         groundDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundSpecular  = Texture2D("assets/textures/ground_spec.png", true)
+        val groundSpecular  = Texture2D("assets/textures/sand_spec.png", true)
         groundSpecular.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundEmit      = Texture2D("assets/textures/ground_emit.png", true)
+        val groundEmit      = Texture2D("assets/textures/sand_emit.png", true)
         groundEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         groundMaterial      = Material(groundDiff, groundEmit, groundSpecular, 60f, Vector2f(64.0f, 64.0f))
 
