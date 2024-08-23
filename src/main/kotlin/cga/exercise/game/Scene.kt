@@ -29,13 +29,13 @@ class Scene(private val window: GameWindow) {
 
     /** Variable Declarations **/
 
-    /** 1) shader programs **/
+    /** shader programs **/
     private val staticShader: ShaderProgram
     private val skyShader: ShaderProgram
-    /** 2) materials **/
+    /** materials **/
     private val groundMaterial: Material
     private val skyboxTex: CubeMap
-    /** 3) renderables **/
+    /** renderables **/
     private val ground: Renderable
     private val ball: Renderable
     private val finishLine: Renderable
@@ -51,13 +51,14 @@ class Scene(private val window: GameWindow) {
     private val wall10: Renderable
     private val skybox: Renderable
 
-    /** 4) camera **/
+    /** camera **/
     private val camera: TronCamera
     private var oldMouseX       = 0.0
     private var oldMouseY       = 0.0
     private var firstMouseMove  = true
     private val skyboxRotator = Transformable()
-    /** 5) additional uniforms **/
+
+    /** additional uniforms **/
     private val groundColor: Vector3f
     private val spotLightList: MutableList<SpotLight>
 
@@ -70,13 +71,16 @@ class Scene(private val window: GameWindow) {
         skyShader = ShaderProgram("assets/shaders/skybox_vert.glsl", "assets/shaders/skybox_frag.glsl")
         // ############################################################################################# //
 
-        /* BGM */
+        /** Background Music **/
         val audioInputStream : AudioInputStream = AudioSystem.getAudioInputStream(File("assets/music/Coral_Chorus.wav"))
         val clip : Clip = AudioSystem.getClip()
+
         clip.open(audioInputStream)
         clip.loop(Clip.LOOP_CONTINUOUSLY)
+
         val gainControl : FloatControl = clip.getControl(FloatControl.Type.MASTER_GAIN) as FloatControl
-        gainControl.value = -12.0f // decreased by 12dB => (1/4 of default volume)
+
+        gainControl.value = -12.0f
         clip.start()
 
         /** materials **/
@@ -97,7 +101,7 @@ class Scene(private val window: GameWindow) {
         val atr3 = VertexAttribute(3, GL_FLOAT, byteStride, 5 * 4) // normal
         val vertexAttribs1 = arrayOf(atr1, atr2, atr3)
 
-        /* CubeMap Textures */
+        /** CubeMap Textures **/
         val cubeFaces = arrayListOf<String>(
             "assets/textures/CubeMap/left.png",
             "assets/textures/CubeMap/right.png",
@@ -110,9 +114,8 @@ class Scene(private val window: GameWindow) {
         skyboxTex = CubeMap(cubeFaces, false)
         skyboxTex.setTexParams()
 
-        /* CubeMap - Skybox */
+        /** CubeMap - Skybox **/
         val skyboxVBO = floatArrayOf(
-            // pos, pos, pos
             -1.0f,  1.0f, -1.0f,//0
             -1.0f, -1.0f, -1.0f,//1
             1.0f, -1.0f, -1.0f,//2
@@ -143,7 +146,8 @@ class Scene(private val window: GameWindow) {
         val skyboxMesh = Mesh(skyboxVBO, skyboxIBO, skyboxAttributes, null)
         skybox = Renderable(mutableListOf(skyboxMesh))
 
-        /** renderables [modelMatrix convention => T * R * S] **/
+        /** renderables **/
+        /** ground **/
         val loader = loadOBJ("assets/models/ground.obj")
         ground = Renderable()
         for (m in loader.objects[0].meshes) {
@@ -153,11 +157,12 @@ class Scene(private val window: GameWindow) {
         }
         ground.resetModelMatrixTo(Vector3f(0.0f))
 
+        /** ball **/
         ball = loadModel("assets/models/ball.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
         ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
         ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
 
-
+        /** wall **/
         wall = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
         wall.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
         wall.rotationInDegree = 90.0f
@@ -219,7 +224,6 @@ class Scene(private val window: GameWindow) {
         // ############################################################################################# //
 
         /** Finish Line **/
-
         finishLine = loadModel("assets/models/finishLine.obj", Math.toRadians(0.0f), Math.toRadians(0.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
         finishLine.resetModelMatrixTo(Vector3f(0.0f, 0.0f, 0.0f))
         finishLine.translate(Vector3f(0.0f,0.0f,-20.0f))
@@ -240,7 +244,6 @@ class Scene(private val window: GameWindow) {
         // ############################################################################################# //
 
         /** OpenGL global settings **/
-
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
     }
@@ -255,15 +258,17 @@ class Scene(private val window: GameWindow) {
              changingColor = Vector3f(1.0f, 1.0f, 1.0f)
          }
 
-         // ############################################################################################# //
+        // ############################################################################################# //
 
-        /* skybox */
+        /** skybox **/
         glDepthFunc(GL_LEQUAL)
+
         skyShader.use()
         skyShader.setUniform("view_matrix", skyboxRotator.getModelMatrix(), false)
         skyShader.setUniform("projection_matrix", Matrix4f(), false)
         skyboxTex.bind(0, skyShader)
         skybox.render(skyShader)
+
         glDepthFunc(GL_LESS)
 
          /** selecting shader program **/
@@ -295,6 +300,9 @@ class Scene(private val window: GameWindow) {
          finishLine.render(staticShader)
     }
 
+    // ############################################################################################# //
+
+    /** Collision Detection **/
     fun findNearRenderablesOf(player: Renderable,
                               radius: Float,
                               renderables: MutableList<Renderable>): MutableList<Renderable> {
@@ -351,6 +359,9 @@ class Scene(private val window: GameWindow) {
              && (midPoint.y - length) < playerPos.y  && playerPos.y < (midPoint.y + length))
     }
 
+    // ############################################################################################# //
+
+    /** Resetting ball to start **/
     fun reset(){
          ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
          ball.scale(Vector3f(0.8f, 0.8f, 0.8f))

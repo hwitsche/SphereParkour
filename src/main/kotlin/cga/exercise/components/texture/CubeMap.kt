@@ -15,46 +15,25 @@ import org.lwjgl.opengl.EXTTextureFilterAnisotropic
 class CubeMap(imageDataArray: ArrayList<ByteBuffer>, width: Int, height: Int, genMipMaps: Boolean){
     private var texID: Int = -1
 
-    /* used after invoke operation */
     init {
-        try {
-            loadCubeMap(imageDataArray, width, height, genMipMaps)
-        } catch (ex: java.lang.Exception) {
-            ex.printStackTrace()
-        }
+        loadCubeMap(imageDataArray, width, height, genMipMaps)
     }
 
     companion object {
-        //create texture from file
-        //don't support compressed textures for now
-        //instead stick to pngs
         operator fun invoke(paths: ArrayList<String>, genMipMaps: Boolean): CubeMap {
             val x = BufferUtils.createIntBuffer(1)
             val y = BufferUtils.createIntBuffer(1)
             val readChannels = BufferUtils.createIntBuffer(1)
 
-            //flip y coordinate to make OpenGL happy
-            STBImage.stbi_set_flip_vertically_on_load(true)
-
-            /* Loading several Textures for CubeMap */
+            /** Loading Textures for CubeMap **/
             val imageDataArray = arrayListOf<ByteBuffer>()
             for(path in paths){
                 val imageData = STBImage.stbi_load(path, x, y, readChannels, 0)
-                    ?: throw Exception("Image file \"" + path + "\" couldn't be read:\n" + STBImage.stbi_failure_reason())
-                imageDataArray.add(imageData)
-            }
-
-            try {
-                return CubeMap(imageDataArray, x.get(), y.get(), genMipMaps)
-            } catch (ex: java.lang.Exception) {
-                ex.printStackTrace()
-                throw ex
-            } finally {
-                /* Freeing all loaded images*/
-                for(image in imageDataArray) {
-                    STBImage.stbi_image_free(image)
+                if (imageData != null) {
+                    imageDataArray.add(imageData)
                 }
             }
+            return CubeMap(imageDataArray, x.get(), y.get(), genMipMaps)
         }
     }
 
