@@ -59,7 +59,6 @@ class Scene(private val window: GameWindow) {
     private val skyboxRotator = Transformable()
     /** 5) additional uniforms **/
     private val groundColor: Vector3f
-    private val pointLightList: MutableList<PointLight>
     private val spotLightList: MutableList<SpotLight>
 
     private var isKollisionLights = false
@@ -231,13 +230,12 @@ class Scene(private val window: GameWindow) {
         /** additional uniforms **/
         groundColor = Vector3f(0.0f, 1.0f, 0.0f)
 
-        pointLightList = mutableListOf()
-        pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(0.0f, 2.0f, 2.0f), Vector3f(-10.0f, 2.0f, -10.0f)))
-        pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(2.0f, 0.0f, 0.0f), Vector3f(10.0f, 2.0f, 10.0f)))
-
         spotLightList = mutableListOf()
-        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(10.0f, 300.0f, 300.0f), Vector3f(6.0f, 2.0f, 4.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
-        spotLightList.last().rotate(Math.toRadians(20f), Math.toRadians(60f), 0f)
+        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(50.0f, 50.0f, 20.0f), Vector3f(0.0f, 6.0f, -20.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
+        spotLightList.last().rotate(Math.toRadians(-90f), Math.toRadians(0f), 0f)
+        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(25.0f, 25.0f, 8.0f), Vector3f(0.0f, 5.0f, 21.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
+        spotLightList.last().rotate(Math.toRadians(-90f), Math.toRadians(0f), 0f)
+
 
         // ############################################################################################# //
 
@@ -275,11 +273,6 @@ class Scene(private val window: GameWindow) {
          staticShader.setUniform("shadingColor", groundColor)
          staticShader.setUniform("shadingColor", changingColor)
          camera.bind(staticShader)
-
-         staticShader.setUniform("numPointLights", pointLightList.size)
-         for (pointLight in pointLightList) {
-            pointLight.bind(staticShader)
-         }
 
          staticShader.setUniform("numSpotLights", spotLightList.size)
          for (spotLight in spotLightList) {
