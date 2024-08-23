@@ -62,6 +62,8 @@ class Scene(private val window: GameWindow) {
     private val pointLightList: MutableList<PointLight>
     private val spotLightList: MutableList<SpotLight>
 
+    private var isKollisionLights = false
+
     /** Variable Definition/Initialisation **/
     init {
         /** shader programs **/
@@ -248,7 +250,12 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
          /** per frame setup **/
          glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-         val changingColor = Vector3f(1.0f, 1.0f, 1.0f)
+         var changingColor = Vector3f(1.0f, 0.0f, 0.0f)
+         if(isKollisionLights){
+             changingColor = Vector3f(1.0f, 0.4f, 0.4f)
+         } else {
+             changingColor = Vector3f(1.0f, 1.0f, 1.0f)
+         }
 
          // ############################################################################################# //
 
@@ -364,6 +371,7 @@ class Scene(private val window: GameWindow) {
         val rotateMul = 0.5f * Math.PI.toFloat()
         val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2, wall3,wall4,wall5, wall6,wall7,wall8, wall9, wall10))
         var isKollision = false
+        isKollisionLights = false
 
         if (isInSquare(0.5f, Vector2f(finishLine.getPosition().x,finishLine.getPosition().z),ball)) reset()
 
@@ -372,11 +380,13 @@ class Scene(private val window: GameWindow) {
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -394,11 +404,13 @@ class Scene(private val window: GameWindow) {
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -415,11 +427,13 @@ class Scene(private val window: GameWindow) {
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul, 0.0f,0.0f),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul,0.0f,0.0f),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -436,11 +450,13 @@ class Scene(private val window: GameWindow) {
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
