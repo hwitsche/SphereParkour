@@ -41,7 +41,16 @@ class Scene(private val window: GameWindow) {
     private val finishLine: Renderable
     private val wall: Renderable
     private val wall2: Renderable
+    private val wall3: Renderable
+    private val wall4: Renderable
+    private val wall5: Renderable
+    private val wall6: Renderable
+    private val wall7: Renderable
+    private val wall8: Renderable
+    private val wall9: Renderable
+    private val wall10: Renderable
     private val skybox: Renderable
+
     /** 4) camera **/
     private val camera: TronCamera
     private var oldMouseX       = 0.0
@@ -144,17 +153,54 @@ class Scene(private val window: GameWindow) {
         ground.resetModelMatrixTo(Vector3f(0.0f))
 
         ball = loadModel("assets/models/ball.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+        ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
         ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
 
+
         wall = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall.resetModelMatrixTo(Vector3f(0.0f,0.0f,0.0f))
         wall.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
         wall.rotationInDegree = 90.0f
+        wall.preTranslate(Vector3f(-8.0f,0.0f,-15.0f))
 
         wall2 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall2.resetModelMatrixTo(Vector3f(0.0f,0.0f,-3.0f))
         wall2.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall2.preTranslate(Vector3f(-9.0f,0.0f,-13.0f))
+
+        wall3 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall3.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall3.preTranslate(Vector3f(-18.0f,0.0f,9.0f))
+
+        wall4 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall4.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall4.rotationInDegree = 90.0f
+        wall4.preTranslate(Vector3f(-8.0f,0.0f,11.0f))
+
+        wall5 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall5.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall5.rotationInDegree = 90.0f
+        wall5.preTranslate(Vector3f(7.0f,0.0f,4.0f))
+
+        wall6 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall6.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall6.preTranslate(Vector3f(9.0f,0.0f,-6.0f))
+
+        wall7 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall7.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall7.rotationInDegree = 90.0f
+        wall7.preTranslate(Vector3f(13.0f,0.0f,-7.0f))
+
+        wall8 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall8.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall8.preTranslate(Vector3f(16.0f,0.0f,-23.0f))
+
+        wall9 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall9.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall9.preTranslate(Vector3f(18.0f,0.0f,9.0f))
+
+        wall10 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall10.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall10.rotationInDegree = 90.0f
+        wall10.preTranslate(Vector3f(7.0f,0.0f,18.0f))
 
         // ############################################################################################# //
 
@@ -165,7 +211,8 @@ class Scene(private val window: GameWindow) {
             0.1f,
             100.0f
         )
-        camera.translate(Vector3f(8.0f, 3.0f, 10.0f))
+        //camera.translate(Vector3f(8.0f, 3.0f, 10.0f))
+        camera.preTranslate(Vector3f(0.0f, 3.0f, 24.0f))
         camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
 
         // ############################################################################################# //
@@ -237,6 +284,14 @@ class Scene(private val window: GameWindow) {
          ball.render(staticShader)
          wall.render(staticShader)
          wall2.render(staticShader)
+         wall3.render(staticShader)
+         wall4.render(staticShader)
+         wall5.render(staticShader)
+         wall6.render(staticShader)
+         wall7.render(staticShader)
+         wall8.render(staticShader)
+         wall9.render(staticShader)
+         wall10.render(staticShader)
          finishLine.render(staticShader)
     }
 
@@ -297,17 +352,17 @@ class Scene(private val window: GameWindow) {
     }
 
     fun reset(){
-         ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+         ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
          ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
 
-         camera.resetModelMatrixTo(Vector3f(8.0f, 3.0f, 10.0f))
+         camera.resetModelMatrixTo(Vector3f(0.0f, 3.0f, 24.0f))
          camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
     }
 
     fun update(dt: Float, t: Float) {
         val moveMul = 5.0f
         val rotateMul = 0.5f * Math.PI.toFloat()
-        val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2))
+        val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2, wall3,wall4,wall5, wall6,wall7,wall8, wall9, wall10))
         var isKollision = false
 
         if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) reset()
