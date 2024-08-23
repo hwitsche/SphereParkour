@@ -2,6 +2,7 @@
 /*
 # Now, whitelist the needed directories. Every file in those will be whitelisted.
 !/assets/
-!/project/
+!/src/
 # And all the files you're interested in.
+!build.gradle
 !.gitignore
