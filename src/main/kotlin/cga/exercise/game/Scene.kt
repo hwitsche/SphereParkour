@@ -41,7 +41,16 @@ class Scene(private val window: GameWindow) {
     private val finishLine: Renderable
     private val wall: Renderable
     private val wall2: Renderable
+    private val wall3: Renderable
+    private val wall4: Renderable
+    private val wall5: Renderable
+    private val wall6: Renderable
+    private val wall7: Renderable
+    private val wall8: Renderable
+    private val wall9: Renderable
+    private val wall10: Renderable
     private val skybox: Renderable
+
     /** 4) camera **/
     private val camera: TronCamera
     private var oldMouseX       = 0.0
@@ -50,8 +59,9 @@ class Scene(private val window: GameWindow) {
     private val skyboxRotator = Transformable()
     /** 5) additional uniforms **/
     private val groundColor: Vector3f
-    private val pointLightList: MutableList<PointLight>
     private val spotLightList: MutableList<SpotLight>
+
+    private var isKollisionLights = false
 
     /** Variable Definition/Initialisation **/
     init {
@@ -70,11 +80,11 @@ class Scene(private val window: GameWindow) {
         clip.start()
 
         /** materials **/
-        val groundDiff      = Texture2D("assets/textures/ground_diff.png", true)
+        val groundDiff      = Texture2D("assets/textures/sand_diff.png", true)
         groundDiff.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundSpecular  = Texture2D("assets/textures/ground_spec.png", true)
+        val groundSpecular  = Texture2D("assets/textures/sand_spec.png", true)
         groundSpecular.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
-        val groundEmit      = Texture2D("assets/textures/ground_emit.png", true)
+        val groundEmit      = Texture2D("assets/textures/sand_emit.png", true)
         groundEmit.setTexParams(GL_REPEAT, GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR)
         groundMaterial      = Material(groundDiff, groundEmit, groundSpecular, 60f, Vector2f(64.0f, 64.0f))
 
@@ -144,17 +154,54 @@ class Scene(private val window: GameWindow) {
         ground.resetModelMatrixTo(Vector3f(0.0f))
 
         ball = loadModel("assets/models/ball.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+        ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
         ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
 
+
         wall = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall.resetModelMatrixTo(Vector3f(0.0f,0.0f,0.0f))
         wall.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
         wall.rotationInDegree = 90.0f
+        wall.preTranslate(Vector3f(-8.0f,0.0f,-15.0f))
 
         wall2 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
-        wall2.resetModelMatrixTo(Vector3f(0.0f,0.0f,-3.0f))
         wall2.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall2.preTranslate(Vector3f(-9.0f,0.0f,-13.0f))
+
+        wall3 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall3.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall3.preTranslate(Vector3f(-18.0f,0.0f,9.0f))
+
+        wall4 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall4.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall4.rotationInDegree = 90.0f
+        wall4.preTranslate(Vector3f(-8.0f,0.0f,11.0f))
+
+        wall5 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall5.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall5.rotationInDegree = 90.0f
+        wall5.preTranslate(Vector3f(7.0f,0.0f,4.0f))
+
+        wall6 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall6.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall6.preTranslate(Vector3f(9.0f,0.0f,-6.0f))
+
+        wall7 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall7.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall7.rotationInDegree = 90.0f
+        wall7.preTranslate(Vector3f(13.0f,0.0f,-7.0f))
+
+        wall8 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall8.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall8.preTranslate(Vector3f(16.0f,0.0f,-23.0f))
+
+        wall9 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall9.rotateAroundPoint(0.0f, 0.0f, -90.0f * (PI.toFloat()/180.0f), Vector3f(0.0f))
+        wall9.preTranslate(Vector3f(18.0f,0.0f,9.0f))
+
+        wall10 = loadModel("assets/models/Wall.obj", Math.toRadians(-90.0f), Math.toRadians(90.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        wall10.rotateAroundPoint(90.0f * (PI.toFloat()/180.0f), -90.0f * (PI.toFloat()/180.0f), 0.0f, Vector3f(0.0f))
+        wall10.rotationInDegree = 90.0f
+        wall10.preTranslate(Vector3f(7.0f,0.0f,18.0f))
 
         // ############################################################################################# //
 
@@ -165,7 +212,8 @@ class Scene(private val window: GameWindow) {
             0.1f,
             100.0f
         )
-        camera.translate(Vector3f(8.0f, 3.0f, 10.0f))
+        //camera.translate(Vector3f(8.0f, 3.0f, 10.0f))
+        camera.preTranslate(Vector3f(0.0f, 3.0f, 24.0f))
         camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
 
         // ############################################################################################# //
@@ -182,13 +230,12 @@ class Scene(private val window: GameWindow) {
         /** additional uniforms **/
         groundColor = Vector3f(0.0f, 1.0f, 0.0f)
 
-        pointLightList = mutableListOf()
-        pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(0.0f, 2.0f, 2.0f), Vector3f(-10.0f, 2.0f, -10.0f)))
-        pointLightList.add(PointLight("pointLight[${pointLightList.size}]", Vector3f(2.0f, 0.0f, 0.0f), Vector3f(10.0f, 2.0f, 10.0f)))
-
         spotLightList = mutableListOf()
-        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(10.0f, 300.0f, 300.0f), Vector3f(6.0f, 2.0f, 4.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
-        spotLightList.last().rotate(Math.toRadians(20f), Math.toRadians(60f), 0f)
+        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(50.0f, 50.0f, 20.0f), Vector3f(0.0f, 6.0f, -20.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
+        spotLightList.last().rotate(Math.toRadians(-90f), Math.toRadians(0f), 0f)
+        spotLightList.add(SpotLight("spotLight[${spotLightList.size}]", Vector3f(25.0f, 25.0f, 8.0f), Vector3f(0.0f, 5.0f, 21.0f), Math.toRadians(20.0f), Math.toRadians(30.0f)))
+        spotLightList.last().rotate(Math.toRadians(-90f), Math.toRadians(0f), 0f)
+
 
         // ############################################################################################# //
 
@@ -201,7 +248,12 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
          /** per frame setup **/
          glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-         val changingColor = Vector3f(1.0f, 1.0f, 1.0f)
+         var changingColor = Vector3f(1.0f, 0.0f, 0.0f)
+         if(isKollisionLights){
+             changingColor = Vector3f(1.0f, 0.4f, 0.4f)
+         } else {
+             changingColor = Vector3f(1.0f, 1.0f, 1.0f)
+         }
 
          // ############################################################################################# //
 
@@ -222,11 +274,6 @@ class Scene(private val window: GameWindow) {
          staticShader.setUniform("shadingColor", changingColor)
          camera.bind(staticShader)
 
-         staticShader.setUniform("numPointLights", pointLightList.size)
-         for (pointLight in pointLightList) {
-            pointLight.bind(staticShader)
-         }
-
          staticShader.setUniform("numSpotLights", spotLightList.size)
          for (spotLight in spotLightList) {
             spotLight.bind(staticShader, camera.calculateViewMatrix())
@@ -237,6 +284,14 @@ class Scene(private val window: GameWindow) {
          ball.render(staticShader)
          wall.render(staticShader)
          wall2.render(staticShader)
+         wall3.render(staticShader)
+         wall4.render(staticShader)
+         wall5.render(staticShader)
+         wall6.render(staticShader)
+         wall7.render(staticShader)
+         wall8.render(staticShader)
+         wall9.render(staticShader)
+         wall10.render(staticShader)
          finishLine.render(staticShader)
     }
 
@@ -297,32 +352,34 @@ class Scene(private val window: GameWindow) {
     }
 
     fun reset(){
-         ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+         ball.resetModelMatrixTo(Vector3f(0.0f, 1.0f, 22.0f))
          ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
 
-         camera.resetModelMatrixTo(Vector3f(8.0f, 3.0f, 10.0f))
+         camera.resetModelMatrixTo(Vector3f(0.0f, 3.0f, 24.0f))
          camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
     }
 
     fun update(dt: Float, t: Float) {
         val moveMul = 5.0f
         val rotateMul = 0.5f * Math.PI.toFloat()
-        val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2))
+        val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2, wall3,wall4,wall5, wall6,wall7,wall8, wall9, wall10))
         var isKollision = false
+        isKollisionLights = false
 
-        if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) reset()
         if (isInSquare(0.5f, Vector2f(finishLine.getPosition().x,finishLine.getPosition().z),ball)) reset()
 
-        if (window.getKeyState(GLFW_KEY_W)) {
+        if (window.getKeyState(GLFW_KEY_W) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -335,16 +392,18 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(-dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_S)) {
+        if (window.getKeyState(GLFW_KEY_S) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -356,16 +415,18 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_A)) {
+        if (window.getKeyState(GLFW_KEY_A) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul, 0.0f,0.0f),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul,0.0f,0.0f),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -377,16 +438,18 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(0.0f, 0.0f, dt * 3.5f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_D)) {
+        if (window.getKeyState(GLFW_KEY_D) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),1.0f,10.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 } else {
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),10.0f,1.0f)) {
                         isKollision = true
+                        isKollisionLights = true
                         break
                     }
                 }
@@ -397,6 +460,12 @@ class Scene(private val window: GameWindow) {
                 camera.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
                 ball.rotateAroundPoint(0.0f, 0.0f, -dt * 3.5f, ball.getPosition())
             }
+        }
+        if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) {
+                    if(ball.getPosition().y > -22.0f){
+                        ball.preTranslate(Vector3f(0.0f, -0.15f, 0.0f))
+                        Thread.sleep(1)
+                    } else reset()
         }
     }
 
