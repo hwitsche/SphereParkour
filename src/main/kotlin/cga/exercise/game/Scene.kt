@@ -365,10 +365,9 @@ class Scene(private val window: GameWindow) {
         val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2, wall3,wall4,wall5, wall6,wall7,wall8, wall9, wall10))
         var isKollision = false
 
-        if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) reset()
         if (isInSquare(0.5f, Vector2f(finishLine.getPosition().x,finishLine.getPosition().z),ball)) reset()
 
-        if (window.getKeyState(GLFW_KEY_W)) {
+        if (window.getKeyState(GLFW_KEY_W) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * -moveMul),1.0f,10.0f)) {
@@ -390,7 +389,7 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(-dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_S)) {
+        if (window.getKeyState(GLFW_KEY_S) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(0.0f,0.0f,dt * moveMul),1.0f,10.0f)) {
@@ -411,7 +410,7 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(dt * 3.5f, 0.0f,0.0f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_A)) {
+        if (window.getKeyState(GLFW_KEY_A) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * -moveMul, 0.0f,0.0f),1.0f,10.0f)) {
@@ -432,7 +431,7 @@ class Scene(private val window: GameWindow) {
                 ball.rotateAroundPoint(0.0f, 0.0f, dt * 3.5f, ball.getPosition())
             }
         }
-        if (window.getKeyState(GLFW_KEY_D)) {
+        if (window.getKeyState(GLFW_KEY_D) && isInSquare(23.0f,Vector2f(0.0f,0.0f),ball)) {
             for(renderable in listOfNearRenderables){
                 if (renderable.rotationInDegree.mod(180.0f) == 0.0f){
                     if (isColliding(ball,0.8f,renderable,Vector3f(dt * moveMul,0.0f,0.0f),1.0f,10.0f)) {
@@ -452,6 +451,12 @@ class Scene(private val window: GameWindow) {
                 camera.preTranslate(Vector3f(dt * moveMul,0.0f, 0.0f))
                 ball.rotateAroundPoint(0.0f, 0.0f, -dt * 3.5f, ball.getPosition())
             }
+        }
+        if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) {
+                    if(ball.getPosition().y > -22.0f){
+                        ball.preTranslate(Vector3f(0.0f, -0.15f, 0.0f))
+                        Thread.sleep(1)
+                    } else reset()
         }
     }
 
