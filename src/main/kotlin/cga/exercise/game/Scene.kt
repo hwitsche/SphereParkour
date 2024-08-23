@@ -38,6 +38,7 @@ class Scene(private val window: GameWindow) {
     /** 3) renderables **/
     private val ground: Renderable
     private val ball: Renderable
+    private val finishLine: Renderable
     private val wall: Renderable
     private val wall2: Renderable
     private val skybox: Renderable
@@ -169,6 +170,15 @@ class Scene(private val window: GameWindow) {
 
         // ############################################################################################# //
 
+        /** Finish Line **/
+
+        finishLine = loadModel("assets/models/finishLine.obj", Math.toRadians(0.0f), Math.toRadians(0.0f), 0.0f) ?: throw IllegalArgumentException("Could not load the model")
+        finishLine.resetModelMatrixTo(Vector3f(0.0f, 0.0f, 0.0f))
+        finishLine.translate(Vector3f(0.0f,0.0f,-20.0f))
+        finishLine.scale(Vector3f(2.0f, 3.0f, 1.5f))
+
+        // ############################################################################################# //
+
         /** additional uniforms **/
         groundColor = Vector3f(0.0f, 1.0f, 0.0f)
 
@@ -227,6 +237,7 @@ class Scene(private val window: GameWindow) {
          ball.render(staticShader)
          wall.render(staticShader)
          wall2.render(staticShader)
+         finishLine.render(staticShader)
     }
 
     fun findNearRenderablesOf(player: Renderable,
@@ -279,11 +290,28 @@ class Scene(private val window: GameWindow) {
         return playerRadius > absClosestPointToPlayer
     }
 
+    fun isInSquare(length : Float,midPoint : Vector2f , Player : Renderable) : Boolean{
+        var playerPos = Vector2f(Player.getPosition().x, Player.getPosition().z)
+        return ((midPoint.x - length) < playerPos.x  && playerPos.x < (midPoint.x + length)
+             && (midPoint.y - length) < playerPos.y  && playerPos.y < (midPoint.y + length))
+    }
+
+    fun reset(){
+         ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
+         ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
+
+         camera.resetModelMatrixTo(Vector3f(8.0f, 3.0f, 10.0f))
+         camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
+    }
+
     fun update(dt: Float, t: Float) {
         val moveMul = 5.0f
         val rotateMul = 0.5f * Math.PI.toFloat()
         val listOfNearRenderables = findNearRenderablesOf(ball, 15.0f,mutableListOf(wall,wall2))
         var isKollision = false
+
+        if (!isInSquare(23.0f,Vector2f(0.0f,0.0f) ,ball)) reset()
+        if (isInSquare(0.5f, Vector2f(finishLine.getPosition().x,finishLine.getPosition().z),ball)) reset()
 
         if (window.getKeyState(GLFW_KEY_W)) {
             for(renderable in listOfNearRenderables){
@@ -375,11 +403,7 @@ class Scene(private val window: GameWindow) {
     fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {
          /** resetting ball and camera **/
          if (key == GLFW_KEY_R) {
-             ball.resetModelMatrixTo(Vector3f(8.0f, 1.0f, 8.0f))
-             ball.scale(Vector3f(0.8f, 0.8f, 0.8f))
-
-             camera.resetModelMatrixTo(Vector3f(8.0f, 3.0f, 10.0f))
-             camera.rotate(Math.toRadians(-35.0f), 0.0f, 0.0f)
+            reset()
          }
     }
 
