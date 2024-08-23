@@ -40,7 +40,7 @@ class Scene(private val window: GameWindow) {
     private val ball: Renderable
     private val wall: Renderable
     private val wall2: Renderable
-    //private val skybox: Renderable
+    private val skybox: Renderable
     /** 4) camera **/
     private val camera: TronCamera
     private var oldMouseX       = 0.0
@@ -88,12 +88,12 @@ class Scene(private val window: GameWindow) {
 
         /* CubeMap Textures */
         val cubeFaces = arrayListOf<String>(
-            "assets/textures/skybox/left.jpg",
-            "assets/textures/skybox/right.jpg",
-            "assets/textures/skybox/bottom.jpg",
-            "assets/textures/skybox/top.jpg",
-            "assets/textures/skybox/back.jpg",
-            "assets/textures/skybox/front.jpg"
+            "assets/textures/CubeMap/left.png",
+            "assets/textures/CubeMap/right.png",
+            "assets/textures/CubeMap/bottom.png",
+            "assets/textures/CubeMap/top.png",
+            "assets/textures/CubeMap/back.png",
+            "assets/textures/CubeMap/front.png"
         )
 
         skyboxTex = CubeMap(cubeFaces, false)
@@ -129,7 +129,8 @@ class Scene(private val window: GameWindow) {
         val attributePosSky : VertexAttribute = VertexAttribute(3, GL_FLOAT, 12, 0)
         val skyboxAttributes = arrayOf(attributePosSky)
 
-        //skybox = Renderable(mutableListOf(Mesh(skyboxVBO, skyboxIBO, skyboxAttributes, null)))
+        val skyboxMesh = Mesh(skyboxVBO, skyboxIBO, skyboxAttributes, null)
+        skybox = Renderable(mutableListOf(skyboxMesh))
 
         /** renderables [modelMatrix convention => T * R * S] **/
         val loader = loadOBJ("assets/models/ground.obj")
@@ -182,10 +183,7 @@ class Scene(private val window: GameWindow) {
         // ############################################################################################# //
 
         /** OpenGL global settings **/
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
-        glEnable(GL_CULL_FACE); GLError.checkThrow()
-        glFrontFace(GL_CCW); GLError.checkThrow()
-        glCullFace(GL_BACK); GLError.checkThrow()
+
         glEnable(GL_DEPTH_TEST); GLError.checkThrow()
         glDepthFunc(GL_LESS); GLError.checkThrow()
     }
@@ -193,7 +191,7 @@ class Scene(private val window: GameWindow) {
     fun render(dt: Float, t: Float) {
          /** per frame setup **/
          glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-         val changingColor = Vector3f(Math.abs(Math.sin(t)), 0.0f, Math.abs(Math.cos(t)))
+         val changingColor = Vector3f(1.0f, 1.0f, 1.0f)
 
          // ############################################################################################# //
 
@@ -203,7 +201,7 @@ class Scene(private val window: GameWindow) {
         skyShader.setUniform("view_matrix", skyboxRotator.getModelMatrix(), false)
         skyShader.setUniform("projection_matrix", Matrix4f(), false)
         skyboxTex.bind(0, skyShader)
-        //skybox.render(skyShader)
+        skybox.render(skyShader)
         glDepthFunc(GL_LESS)
 
          /** selecting shader program **/

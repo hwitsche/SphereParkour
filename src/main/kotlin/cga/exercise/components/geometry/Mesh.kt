@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL30.*
  *
  * Created by Fabian on 16.09.2017.
  */
-class Mesh(vertexdata: FloatArray, indexdata: IntArray, attributes: Array<VertexAttribute>, private val material: Material) {
+class Mesh(vertexdata: FloatArray, indexdata: IntArray, attributes: Array<VertexAttribute>, private val material: Material?) {
     //private data
     private var vaoId = 0
     private var vboId = 0
@@ -73,7 +73,7 @@ class Mesh(vertexdata: FloatArray, indexdata: IntArray, attributes: Array<Vertex
 
     fun render(shaderProgram: ShaderProgram) {
         shaderProgram.saveTU()
-        material.bind(shaderProgram)
+        material?.bind(shaderProgram)
         render()
         shaderProgram.resetTU()
     }
