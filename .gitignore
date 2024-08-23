@@ -1,6 +1,7 @@
 # First, ignore everything in the root folder.
 /*
 # Now, whitelist the needed directories. Every file in those will be whitelisted.
+!/assets/
 !/project/
 # And all the files you're interested in.
 !.gitignore
